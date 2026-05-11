@@ -128,7 +128,7 @@ export default function KitchenPage() {
         </div>
       </header>
 
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1.5rem', padding:'1.5rem', maxWidth:900, margin:'0 auto' }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))', gap:'1.5rem', padding:'1.5rem', maxWidth:900, margin:'0 auto' }}>
 
         {/* Nuevos (confirmed) */}
         <div>

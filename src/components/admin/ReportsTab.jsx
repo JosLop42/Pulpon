@@ -353,17 +353,17 @@ export default function ReportsTab({ branches }) {
       ) : (
         <>
           {/* KPIs */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'0.875rem', marginBottom:'1.25rem' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'0.625rem', marginBottom:'1.25rem' }}>
             {[
               { label:'Total ingresos',     value:`Q${totalRevenue.toFixed(2)}`, color:'var(--teal)'  },
               { label:'Pedidos cobrados',   value:String(totalOrders),           color:'var(--mist)'  },
               { label:'Ticket promedio',    value:`Q${avgOrder.toFixed(2)}`,     color:'var(--amber)' },
             ].map(k => (
-              <div key={k.label} className="card" style={{ textAlign:'center', padding:'1rem 0.75rem' }}>
-                <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'1.25rem', color:k.color }}>
+              <div key={k.label} className="card" style={{ textAlign:'center', padding:'0.875rem 0.5rem' }}>
+                <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'clamp(0.85rem, 3.2vw, 1.2rem)', color:k.color, wordBreak:'break-all' }}>
                   {k.value}
                 </div>
-                <div style={{ color:'var(--text-3)', fontSize:'0.73rem', marginTop:4 }}>{k.label}</div>
+                <div style={{ color:'var(--text-3)', fontSize:'clamp(0.62rem, 1.8vw, 0.73rem)', marginTop:4 }}>{k.label}</div>
               </div>
             ))}
           </div>

@@ -236,6 +236,12 @@ h4 { font-size: 1rem; }
   color: var(--text-1);
 }
 
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .card { padding: 1rem; }
+  .btn  { padding: 0.55rem 1rem; font-size: 0.85rem; }
+}
+
 /* ── SCROLLBAR ──────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
