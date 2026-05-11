@@ -10,7 +10,15 @@ export default function MenuPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { branchId, branchName } = useAuth()
-  const tableNum = parseInt(searchParams.get('table'), 10)
+  const tableNum    = parseInt(searchParams.get('table'), 10)
+  const isPickup    = tableNum === 0
+  const pickupName  = searchParams.get('pname')  ? decodeURIComponent(searchParams.get('pname'))  : ''
+  const pickupPhone = searchParams.get('pphone') ? decodeURIComponent(searchParams.get('pphone')) : ''
+
+  const effectiveBranchId   = searchParams.get('branch') || branchId
+  const effectiveBranchName = searchParams.get('bname')
+    ? decodeURIComponent(searchParams.get('bname'))
+    : branchName
 
   const [categories,      setCategories]     = useState([])
   const [items,           setItems]          = useState([])
@@ -24,7 +32,7 @@ export default function MenuPage() {
   const { itemCount, items: cartItems, clear, total } = useCart()
 
   useEffect(() => {
-    Promise.all([getMenuCategories(), getMenu()])
+    Promise.all([getMenuCategories(), getMenu(effectiveBranchId)])
       .then(([cats, menuItems]) => {
         setCategories(cats)
         setItems(menuItems)
@@ -38,13 +46,16 @@ export default function MenuPage() {
     ? items.filter(i => i.category_id === activeCategory)
     : items
 
-  async function handlePlaceOrder(notes) {
+  async function handlePlaceOrder(kitchenNotes) {
     if (!cartItems.length) return
     setSubmitting(true)
     setSubmitError(null)
+    const notes = isPickup
+      ? `[PICKUP] ${pickupName} / ${pickupPhone}${kitchenNotes ? '\n' + kitchenNotes : ''}`
+      : (kitchenNotes || null)
     try {
       await createOrder({
-        branch_id:    branchId,
+        branch_id:    effectiveBranchId,
         table_number: tableNum,
         notes,
         items: cartItems.map(i => ({ id: i.id, price: i.price, quantity: i.quantity, notes: i.notes }))
@@ -54,18 +65,20 @@ export default function MenuPage() {
       navigate('/orders')
     } catch (err) {
       const msg = err?.message || ''
-      setSubmitError(
-        msg.includes('disponibles')
-          ? 'Uno o más platillos ya no están disponibles. Recarga el menú y vuelve a armar el pedido.'
-          : 'No se pudo enviar el pedido. Verifica tu conexión e intenta de nuevo.'
-      )
+      if (msg.includes('disponibles')) {
+        setSubmitError('Uno o más platillos ya no están disponibles. Recarga el menú y vuelve a armar el pedido.')
+      } else if (msg.includes('create_order_with_items') || msg.includes('function')) {
+        setSubmitError('Error de configuración en el servidor. Contacta al administrador.')
+      } else {
+        setSubmitError('No se pudo enviar el pedido. Verifica tu conexión e intenta de nuevo.')
+      }
     } finally {
       setSubmitting(false)
     }
   }
 
-  // Sin número de mesa válido → mostrar selector
-  if (!tableNum || isNaN(tableNum) || tableNum < 1 || tableNum > 8) {
+  // Sin número de mesa válido (y no es pickup) → mostrar selector
+  if (isNaN(tableNum) || (!isPickup && (tableNum < 1 || tableNum > 8))) {
     return (
       <div className="page" style={{ alignItems:'center', justifyContent:'center' }}>
         <div className="empty-state">
@@ -105,7 +118,7 @@ export default function MenuPage() {
       {/* Header */}
       <header style={{
         position:'sticky', top:0, zIndex:10,
-        background:'rgba(10,22,40,0.92)', backdropFilter:'blur(12px)',
+        background:'rgba(255,245,235,0.92)', backdropFilter:'blur(12px)',
         borderBottom:'1px solid var(--border)', padding:'0.875rem 1rem'
       }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', maxWidth:480, margin:'0 auto' }}>
@@ -119,9 +132,11 @@ export default function MenuPage() {
             </button>
             <div>
               <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'1rem', lineHeight:1 }}>
-                🐙 {branchName}
+                🐙 {effectiveBranchName}
               </div>
-              <div style={{ color:'var(--text-3)', fontSize:'0.75rem' }}>Mesa {tableNum}</div>
+              <div style={{ color:'var(--text-3)', fontSize:'0.75rem' }}>
+                {isPickup ? `🛵 Para llevar — ${pickupName}` : `Mesa ${tableNum}`}
+              </div>
             </div>
           </div>
           {itemCount > 0 && (
@@ -187,6 +202,8 @@ export default function MenuPage() {
         onPlaceOrder={handlePlaceOrder}
         submitting={submitting}
         tableNum={tableNum}
+        isPickup={isPickup}
+        pickupName={pickupName}
         submitError={submitError}
       />
     </div>

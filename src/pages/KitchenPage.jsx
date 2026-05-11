@@ -65,7 +65,7 @@ export default function KitchenPage() {
       if (payload.eventType === 'INSERT') {
         if (!KITCHEN_STATUSES.includes(payload.new.status)) return
         const full = await getOrderById(payload.new.id).catch(() => null)
-        if (full) setOrders(prev => [...prev, full])
+        if (full) setOrders(prev => prev.some(o => o.id === full.id) ? prev : [...prev, full])
       } else if (payload.eventType === 'UPDATE') {
         const { id, status } = payload.new
         if (KITCHEN_STATUSES.includes(status)) {
@@ -110,19 +110,19 @@ export default function KitchenPage() {
 
       <header style={{
         position:'sticky', top:0, zIndex:10,
-        background:'rgba(10,22,40,0.95)', backdropFilter:'blur(12px)',
-        borderBottom:'1px solid var(--border)', padding:'1rem 1.5rem',
+        background:'#0b2545',
+        borderBottom:'1px solid rgba(255,255,255,0.12)', padding:'1rem 1.5rem',
         display:'flex', alignItems:'center', justifyContent:'space-between'
       }}>
-        <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'1.2rem' }}>
+        <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'1.2rem', color:'#fff5eb' }}>
           🍳 Cocina — {branchName}
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:'1rem' }}>
-          <div style={{ color:'var(--text-2)', fontSize:'0.85rem', display:'flex', gap:'1rem' }}>
-            <span>Nuevos: <strong style={{ color:'var(--amber)' }}>{confirmed.length}</strong></span>
-            <span>En progreso: <strong style={{ color:'var(--mist)' }}>{preparing.length}</strong></span>
+          <div style={{ color:'rgba(255,245,235,0.7)', fontSize:'0.85rem', display:'flex', gap:'1rem' }}>
+            <span>Nuevos: <strong style={{ color:'#ffb347' }}>{confirmed.length}</strong></span>
+            <span>En progreso: <strong style={{ color:'#7eb8d4' }}>{preparing.length}</strong></span>
           </div>
-          <button className="btn btn-ghost" style={{ fontSize:'0.82rem' }} onClick={() => navigate('/orders')}>
+          <button className="btn btn-ghost" style={{ fontSize:'0.82rem', color:'#fff5eb', borderColor:'rgba(255,255,255,0.2)' }} onClick={() => navigate('/orders')}>
             ← Pedidos
           </button>
         </div>
@@ -195,8 +195,20 @@ export default function KitchenPage() {
   )
 }
 
+function parsePickup(notes) {
+  if (!notes?.startsWith('[PICKUP] ')) return null
+  const firstLine = notes.split('\n')[0]
+  const match = firstLine.match(/^\[PICKUP\] (.+) \/ (.+)$/)
+  return match ? { name: match[1], phone: match[2] } : null
+}
+
 function KitchenCard({ order, minutesAgo, urgencyColor, action, accent }) {
   const [loading, setLoading] = useState(false)
+  const pickup = order.table_number === 0 ? parsePickup(order.notes) : null
+  const kitchenNotes = pickup
+    ? (order.notes?.split('\n').slice(1).join('\n').trim() || null)
+    : order.notes
+
   async function handle() {
     setLoading(true)
     try { await action.fn() } finally { setLoading(false) }
@@ -205,7 +217,7 @@ function KitchenCard({ order, minutesAgo, urgencyColor, action, accent }) {
     <div className="card" style={{ borderLeft:`3px solid ${accent || urgencyColor}` }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'0.625rem' }}>
         <span style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'1.1rem' }}>
-          Mesa {order.table_number}
+          {pickup ? `🛵 ${pickup.name}` : `Mesa ${order.table_number}`}
         </span>
         <span style={{ color:urgencyColor, fontFamily:'var(--font-display)', fontWeight:600, fontSize:'0.85rem' }}>
           {minutesAgo}
@@ -218,8 +230,11 @@ function KitchenCard({ order, minutesAgo, urgencyColor, action, accent }) {
             {item.notes && <span style={{ color:'var(--amber)', fontSize:'0.8rem' }}> · {item.notes}</span>}
           </div>
         ))}
-        {order.notes && (
-          <div style={{ color:'var(--amber)', fontSize:'0.8rem', marginTop:'0.25rem' }}>📝 {order.notes}</div>
+        {pickup?.phone && (
+          <div style={{ color:'var(--text-3)', fontSize:'0.78rem', marginTop:'0.15rem' }}>📞 {pickup.phone}</div>
+        )}
+        {kitchenNotes && (
+          <div style={{ color:'var(--amber)', fontSize:'0.8rem', marginTop:'0.25rem' }}>📝 {kitchenNotes}</div>
         )}
       </div>
       <button

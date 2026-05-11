@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useCart } from '@/context/CartContext'
 
-export default function CartDrawer({ open, onClose, onPlaceOrder, submitting, tableNum, submitError }) {
+export default function CartDrawer({ open, onClose, onPlaceOrder, submitting, tableNum, isPickup, pickupName, submitError }) {
   const { items, total, updateQty } = useCart()
   const [notes, setNotes] = useState('')
 
@@ -37,7 +37,9 @@ export default function CartDrawer({ open, onClose, onPlaceOrder, submitting, ta
 
         {/* Header */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0.75rem 1.25rem 0.5rem' }}>
-          <h3 style={{ fontFamily:'var(--font-display)' }}>Pedido — Mesa {tableNum}</h3>
+          <h3 style={{ fontFamily:'var(--font-display)' }}>
+            {isPickup ? `🛵 Para llevar — ${pickupName}` : `Pedido — Mesa ${tableNum}`}
+          </h3>
           <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>
         </div>
 

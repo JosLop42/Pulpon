@@ -8,7 +8,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true, storageKey: 'pulpo-zurdo-auth' },
+  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true, storageKey: 'pulpos-auth' },
   realtime: { params: { eventsPerSecond: 10 } }
 })
 
@@ -22,14 +22,25 @@ export async function getBranches() {
 
 // ── Menú ─────────────────────────────────────────────────────────────────────
 
-export async function getMenu() {
-  const { data, error } = await supabase
+export async function getMenu(branchId) {
+  // Fetch globally available items
+  const { data: items, error: itemsError } = await supabase
     .from('menu_items')
     .select('*, menu_categories(id, name, emoji, sort_order)')
     .eq('is_available', true)
     .order('sort_order')
-  if (error) throw error
-  return data
+  if (itemsError) throw itemsError
+
+  // Fetch items disabled for this specific branch
+  const { data: disabled, error: disabledError } = await supabase
+    .from('branch_menu_items')
+    .select('menu_item_id')
+    .eq('branch_id', branchId)
+    .eq('is_available', false)
+  if (disabledError) throw disabledError
+
+  const disabledIds = new Set((disabled || []).map(r => r.menu_item_id))
+  return (items || []).filter(item => !disabledIds.has(item.id))
 }
 
 export async function getMenuCategories() {
@@ -39,19 +50,49 @@ export async function getMenuCategories() {
 }
 
 export async function getMenuAdmin() {
+  // Intenta cargar con disponibilidad por sucursal (requiere migration_v4)
   const { data, error } = await supabase
+    .from('menu_items')
+    .select('*, menu_categories(id, name, emoji, sort_order), branch_menu_items(branch_id, is_available)')
+    .order('sort_order')
+  if (!error) return data || []
+
+  // Fallback si la migración v4 aún no se ha corrido
+  const { data: fallback, error: fallbackError } = await supabase
     .from('menu_items')
     .select('*, menu_categories(id, name, emoji, sort_order)')
     .order('sort_order')
+  if (fallbackError) throw fallbackError
+  return (fallback || []).map(item => ({ ...item, branch_menu_items: [] }))
+}
+
+export async function updateBranch(id, { name, location }) {
+  const { data, error } = await supabase
+    .from('branches')
+    .update({ name, location })
+    .eq('id', id)
+    .select()
+    .single()
   if (error) throw error
   return data
 }
 
+// Desactiva/activa para TODAS las sucursales
 export async function toggleMenuItemAvailability(id, is_available) {
   const { error } = await supabase
     .from('menu_items')
     .update({ is_available })
     .eq('id', id)
+  if (error) throw error
+}
+
+// Desactiva/activa para UNA sucursal específica
+export async function toggleBranchMenuItemAvailability(branch_id, menu_item_id, is_available) {
+  const { error } = await supabase
+    .from('branch_menu_items')
+    .update({ is_available })
+    .eq('branch_id', branch_id)
+    .eq('menu_item_id', menu_item_id)
   if (error) throw error
 }
 
@@ -124,6 +165,19 @@ export async function markTablePaid(branch_id, table_number) {
     .not('status', 'eq', 'cancelled')
     .not('status', 'eq', 'paid')
   if (error) throw error
+}
+
+// ── Reportes ──────────────────────────────────────────────────────────────────
+
+export async function getReportsData(dateFrom) {
+  let query = supabase
+    .from('orders')
+    .select('id, branch_id, total, created_at, branches(name), order_items(quantity, unit_price, menu_items(name, menu_categories(name, emoji)))')
+    .eq('status', 'paid')
+  if (dateFrom) query = query.gte('created_at', dateFrom)
+  const { data, error } = await query
+  if (error) throw error
+  return data || []
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────

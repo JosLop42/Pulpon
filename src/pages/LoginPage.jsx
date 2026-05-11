@@ -44,22 +44,21 @@ export default function LoginPage() {
 
       <div style={{
         position:'fixed', inset:0, zIndex:0,
-        background:'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,201,167,0.12) 0%, transparent 70%), var(--ink)'
+        background:'radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,90,60,0.15) 0%, transparent 70%), var(--ink)'
       }}/>
 
       <div className="container animate-up" style={{ position:'relative', zIndex:1 }}>
 
         <div style={{ textAlign:'center', marginBottom:'2.5rem' }}>
-          <div style={{
-            width:72, height:72, borderRadius:'50%',
-            background:'var(--surface)', border:'1px solid var(--border-2)',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            margin:'0 auto 1rem', fontSize:'2rem'
-          }}>🐙</div>
+          <img
+            src="/logo.png"
+            alt="Pulpo's"
+            style={{ width:180, height:180, objectFit:'contain', margin:'0 auto 1rem', borderRadius:'var(--radius-lg)' }}
+          />
           <h1 style={{ fontFamily:'var(--font-display)', fontSize:'1.9rem', marginBottom:'0.25rem' }}>
-            Pulpo Zurdo
+            Pulpo's
           </h1>
-          <p style={{ color:'var(--text-3)', fontSize:'0.9rem' }}>Panel de empleados</p>
+          <p style={{ color:'var(--text-3)', fontSize:'0.9rem', fontStyle:'italic' }}>Sabor que te pone de cabeza</p>
         </div>
 
         <div className="card" style={{ padding:'1.75rem' }}>
@@ -70,7 +69,7 @@ export default function LoginPage() {
               <input
                 className="input" type="email" autoComplete="email"
                 value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="sucursal@pulpozurdo.com" required
+                placeholder="sucursal@pulpos.com" required
               />
             </div>
 

@@ -3,17 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import {
   getOrdersByBranch, getOrderById, updateOrderStatus,
-  markTableDelivered, markTablePaid, subscribeToOrders, signOut
+  markTableDelivered, markTablePaid, subscribeToOrders, signOut,
+  getBranches
 } from '@/lib/supabase'
 
 // ── Prioridad de estado para la tarjeta de mesa ───────────────────────────────
 const STATUS_PRIORITY = { ready: 4, confirmed: 3, preparing: 2, delivered: 1 }
 
 const STATUS_UI = {
-  ready:     { label: 'Listo para entregar', color: '#5dda5d' },
-  confirmed: { label: 'En espera (cocina)',  color: 'var(--amber)' },
-  preparing: { label: 'Preparando',          color: 'var(--mist)' },
-  delivered: { label: 'Todo entregado',      color: 'var(--teal)' },
+  ready:     { label: 'Listo para entregar', color: '#1a9a1a' },
+  confirmed: { label: 'En espera (cocina)',  color: '#c87400' },
+  preparing: { label: 'Preparando',          color: '#2a6080' },
+  delivered: { label: 'Todo entregado',      color: '#e62946' },
 }
 
 function tableStatus(orders) {
@@ -133,7 +134,7 @@ function TableCard({ tableNum, orders, branchId, onAction }) {
         <button
           className="btn btn-ghost"
           style={{ fontSize:'0.82rem', flex:1 }}
-          onClick={() => onAction('add', tableNum)}
+          onClick={() => onAction('add', tableNum, orders[0]?.branch_id)}
         >
           + Agregar ítem
         </button>
@@ -190,7 +191,189 @@ function TableCard({ tableNum, orders, branchId, onAction }) {
   )
 }
 
+// ── Helpers pickup ────────────────────────────────────────────────────────────
+function parsePickup(notes) {
+  if (!notes?.startsWith('[PICKUP] ')) return null
+  const match = notes.split('\n')[0].match(/^\[PICKUP\] (.+) \/ (.+)$/)
+  return match ? { name: match[1], phone: match[2] } : null
+}
+
+// ── Modal pickup ──────────────────────────────────────────────────────────────
+function PickupModal({ onConfirm, onClose }) {
+  const [name,  setName]  = useState('')
+  const [phone, setPhone] = useState('')
+  return (
+    <>
+      <div onClick={onClose} style={{ position:'fixed', inset:0, zIndex:40, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(3px)' }}/>
+      <div className="animate-up" style={{
+        position:'fixed', bottom:0, left:0, right:0, zIndex:50,
+        background:'var(--surface)',
+        borderRadius:'var(--radius-xl) var(--radius-xl) 0 0',
+        border:'1px solid var(--border-2)', borderBottom:'none',
+        padding:'1.25rem', maxWidth:520, margin:'0 auto'
+      }}>
+        <div style={{ display:'flex', justifyContent:'center', marginBottom:'0.875rem' }}>
+          <div style={{ width:36, height:4, borderRadius:2, background:'var(--border-2)' }}/>
+        </div>
+        <h3 style={{ fontFamily:'var(--font-display)', marginBottom:'0.25rem', textAlign:'center' }}>🛵 Pedido para llevar</h3>
+        <p style={{ color:'var(--text-3)', fontSize:'0.8rem', textAlign:'center', marginBottom:'1.25rem' }}>
+          El pedido se asignará al nombre del cliente
+        </p>
+        <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem', marginBottom:'1rem' }}>
+          <div>
+            <label className="label">Nombre del cliente</label>
+            <input className="input" placeholder="Juan García" value={name} onChange={e => setName(e.target.value)} autoFocus />
+          </div>
+          <div>
+            <label className="label">Teléfono (opcional)</label>
+            <input className="input" placeholder="5555-1234" value={phone} onChange={e => setPhone(e.target.value)} />
+          </div>
+        </div>
+        <button
+          className="btn btn-primary"
+          style={{ width:'100%', marginBottom:'0.5rem' }}
+          disabled={!name.trim()}
+          onClick={() => onConfirm(name.trim(), phone.trim())}
+        >
+          Continuar al menú →
+        </button>
+        <button className="btn btn-ghost" style={{ width:'100%', fontSize:'0.875rem' }} onClick={onClose}>Cancelar</button>
+      </div>
+    </>
+  )
+}
+
+// ── Tarjeta de pickup activo ──────────────────────────────────────────────────
+function PickupCard({ order, onAction }) {
+  const [paying,     setPaying]     = useState(false)
+  const [confirmPay, setConfirmPay] = useState(false)
+  const [actionError, setActionError] = useState(null)
+  const pickup  = parsePickup(order.notes)
+  const name    = pickup?.name  || 'Sin nombre'
+  const phone   = pickup?.phone || ''
+  const total   = order.total || 0
+
+  const STATUS_LABEL = {
+    confirmed: { label:'⏳ En espera',   color:'#c87400' },
+    preparing: { label:'🔥 Preparando', color:'#2a6080' },
+    ready:     { label:'✅ Listo',       color:'#1a9a1a' },
+    delivered: { label:'📦 Entregado',   color:'#e62946' },
+  }
+  const ui = STATUS_LABEL[order.status] || STATUS_LABEL.confirmed
+
+  async function handlePay() {
+    setPaying(true)
+    setConfirmPay(false)
+    try {
+      await updateOrderStatus(order.id, 'paid')
+      onAction()
+    } catch { setActionError('No se pudo registrar el cobro.') }
+    finally { setPaying(false) }
+  }
+
+  return (
+    <div className="card" style={{ borderLeft:`3px solid ${ui.color}`, padding:'1rem 1.1rem' }}>
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:'0.5rem' }}>
+        <div>
+          <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'1.05rem' }}>🛵 {name}</div>
+          {phone && <div style={{ color:'var(--text-3)', fontSize:'0.75rem' }}>📞 {phone}</div>}
+        </div>
+        <div style={{ textAlign:'right' }}>
+          <div style={{
+            display:'inline-block', padding:'0.2rem 0.65rem', borderRadius:100,
+            fontSize:'0.75rem', fontWeight:600,
+            background:`${ui.color}22`, color:ui.color, border:`1px solid ${ui.color}44`
+          }}>{ui.label}</div>
+          <div style={{ color:'var(--teal)', fontFamily:'var(--font-display)', fontWeight:700, fontSize:'1rem', marginTop:4 }}>
+            Q{total.toFixed(2)}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ marginBottom:'0.75rem', display:'flex', flexDirection:'column', gap:'0.2rem' }}>
+        {(order.order_items || []).map(item => (
+          <div key={item.id} style={{ display:'flex', justifyContent:'space-between', fontSize:'0.85rem' }}>
+            <span>{item.quantity}× {item.menu_items?.name || '—'}</span>
+            <span style={{ color:'var(--text-3)', fontSize:'0.8rem' }}>Q{(item.unit_price * item.quantity).toFixed(2)}</span>
+          </div>
+        ))}
+      </div>
+
+      {actionError && <div style={{ color:'var(--coral)', fontSize:'0.8rem', marginBottom:'0.5rem' }}>{actionError}</div>}
+
+      {confirmPay ? (
+        <div style={{ display:'flex', gap:'0.5rem' }}>
+          <button className="btn btn-primary" style={{ flex:1, fontSize:'0.82rem' }} onClick={handlePay} disabled={paying}>
+            {paying ? <><div className="spinner"/>…</> : `✓ Cobrar Q${total.toFixed(2)}`}
+          </button>
+          <button className="btn btn-ghost" style={{ fontSize:'0.82rem' }} onClick={() => setConfirmPay(false)}>Cancelar</button>
+        </div>
+      ) : (
+        order.status === 'ready' || order.status === 'delivered' ? (
+          <button className="btn btn-primary" style={{ width:'100%', fontSize:'0.82rem' }} onClick={() => setConfirmPay(true)}>
+            💳 Cobrar Q{total.toFixed(2)}
+          </button>
+        ) : null
+      )}
+    </div>
+  )
+}
+
 // ── Modal selector de mesa ────────────────────────────────────────────────────
+function BranchPicker({ onSelect, onClose }) {
+  const [branches, setBranches] = useState([])
+  const [loading,  setLoading]  = useState(true)
+
+  useEffect(() => {
+    getBranches().then(data => setBranches(data || [])).finally(() => setLoading(false))
+  }, [])
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position:'fixed', inset:0, zIndex:40, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(3px)' }}/>
+      <div className="animate-up" style={{
+        position:'fixed', bottom:0, left:0, right:0, zIndex:50,
+        background:'var(--surface)',
+        borderRadius:'var(--radius-xl) var(--radius-xl) 0 0',
+        border:'1px solid var(--border-2)', borderBottom:'none',
+        padding:'1.25rem', maxWidth:520, margin:'0 auto'
+      }}>
+        <div style={{ display:'flex', justifyContent:'center', marginBottom:'0.875rem' }}>
+          <div style={{ width:36, height:4, borderRadius:2, background:'var(--border-2)' }}/>
+        </div>
+        <h3 style={{ fontFamily:'var(--font-display)', marginBottom:'0.375rem', textAlign:'center' }}>
+          🏪 ¿Para qué sucursal?
+        </h3>
+        <p style={{ color:'var(--text-3)', fontSize:'0.8rem', textAlign:'center', marginBottom:'1rem' }}>
+          El pedido se registrará bajo esta sucursal en reportes
+        </p>
+        {loading ? (
+          <div style={{ display:'flex', justifyContent:'center', padding:'1rem' }}>
+            <div className="spinner"/>
+          </div>
+        ) : (
+          <div style={{ display:'flex', flexDirection:'column', gap:'0.5rem', marginBottom:'1rem' }}>
+            {branches.map(b => (
+              <button
+                key={b.id}
+                className="btn btn-ghost"
+                style={{ justifyContent:'flex-start', padding:'0.875rem 1rem', fontSize:'0.95rem', fontFamily:'var(--font-display)', fontWeight:600 }}
+                onClick={() => onSelect(b)}
+              >
+                🐙 {b.name}
+                {b.location && <span style={{ color:'var(--text-3)', fontWeight:400, fontSize:'0.8rem', marginLeft:'auto' }}>{b.location}</span>}
+              </button>
+            ))}
+          </div>
+        )}
+        <button className="btn btn-ghost" style={{ width:'100%', fontSize:'0.875rem' }} onClick={onClose}>
+          Cancelar
+        </button>
+      </div>
+    </>
+  )
+}
+
 function TablePicker({ onSelect, onClose, activeTables }) {
   const [warning, setWarning] = useState(null)
 
@@ -279,7 +462,24 @@ export default function OrdersPage() {
 
   const [orders,          setOrders]         = useState([])
   const [loading,         setLoading]        = useState(true)
-  const [showPicker,      setShowPicker]     = useState(false)
+  const [pickerStep,      setPickerStep]     = useState(null) // null | 'branch' | 'table'
+  const [pickerBranch,    setPickerBranch]   = useState(null) // { id, name } elegida por admin
+  const [showPickup,      setShowPickup]     = useState(false)
+
+  const isAdmin = profile?.role === 'admin'
+
+  function openNewOrder() {
+    if (isAdmin) {
+      setPickerStep('branch')
+    } else {
+      setPickerStep('table')
+    }
+  }
+
+  function closePicker() {
+    setPickerStep(null)
+    setPickerBranch(null)
+  }
 
   // Carga inicial
   useEffect(() => {
@@ -307,7 +507,7 @@ export default function OrdersPage() {
       if (payload.eventType === 'INSERT') {
         const full = await getOrderById(payload.new.id).catch(() => null)
         if (full && full.status !== 'paid' && full.status !== 'cancelled') {
-          setOrders(prev => [full, ...prev])
+          setOrders(prev => prev.some(o => o.id === full.id) ? prev : [full, ...prev])
         }
       } else if (payload.eventType === 'UPDATE') {
         const { id, status } = payload.new
@@ -327,18 +527,38 @@ export default function OrdersPage() {
     getOrdersByBranch(branchId).then(data => setOrders(data || [])).catch(() => {})
   }
 
-  function handleCardAction(type, tableNum) {
+  function handleCardAction(type, tableNum, orderBranchId) {
     if (type === 'add') {
-      navigate(`/menu?table=${tableNum}`)
+      const bid = orderBranchId || branchId
+      navigate(`/menu?table=${tableNum}${bid ? `&branch=${bid}` : ''}`)
     } else {
       refetch()
     }
   }
 
-  // Agrupar pedidos por mesa
+  function goToMenu(tableNum) {
+    if (isAdmin && pickerBranch) {
+      navigate(`/menu?table=${tableNum}&branch=${pickerBranch.id}&bname=${encodeURIComponent(pickerBranch.name)}`)
+    } else {
+      navigate(`/menu?table=${tableNum}`)
+    }
+    setPickerStep(null)
+    setPickerBranch(null)
+  }
+
+  function goToPickupMenu(name, phone) {
+    const bid = isAdmin && pickerBranch ? `&branch=${pickerBranch.id}&bname=${encodeURIComponent(pickerBranch.name)}` : ''
+    navigate(`/menu?table=0&pname=${encodeURIComponent(name)}&pphone=${encodeURIComponent(phone)}${bid}`)
+    setShowPickup(false)
+    setPickerBranch(null)
+  }
+
+  const pickupOrders = useMemo(() => orders.filter(o => o.table_number === 0), [orders])
+
+  // Agrupar pedidos por mesa (excluye pickups)
   const tables = useMemo(() => {
     const map = {}
-    for (const order of orders) {
+    for (const order of orders.filter(o => o.table_number > 0)) {
       const n = order.table_number
       if (!map[n]) map[n] = []
       map[n].push(order)
@@ -370,13 +590,13 @@ export default function OrdersPage() {
       {/* Header */}
       <header style={{
         position:'sticky', top:0, zIndex:10,
-        background:'rgba(10,22,40,0.95)', backdropFilter:'blur(12px)',
+        background:'rgba(255,245,235,0.95)', backdropFilter:'blur(12px)',
         borderBottom:'1px solid var(--border)', padding:'0.875rem 1.25rem'
       }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', maxWidth:700, margin:'0 auto' }}>
           <div>
             <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'1.1rem', display:'flex', alignItems:'center', gap:'0.5rem' }}>
-              🐙 Pulpo Zurdo
+              🐙 Pulpo's
               {tables.length > 0 && (
                 <span style={{ background:'var(--coral)', color:'#fff', borderRadius:100, padding:'0.1rem 0.5rem', fontSize:'0.72rem', fontWeight:700 }}>
                   {tables.length} mesa{tables.length !== 1 ? 's' : ''}
@@ -386,8 +606,11 @@ export default function OrdersPage() {
             <div style={{ color:'var(--text-3)', fontSize:'0.78rem' }}>{branchName}</div>
           </div>
           <div style={{ display:'flex', gap:'0.5rem' }}>
-            <button className="btn btn-primary" style={{ fontSize:'0.85rem' }} onClick={() => setShowPicker(true)}>
+            <button className="btn btn-primary" style={{ fontSize:'0.85rem' }} onClick={openNewOrder}>
               + Nueva orden
+            </button>
+            <button className="btn btn-ghost" style={{ fontSize:'0.85rem' }} onClick={() => setShowPickup(true)}>
+              🛵 Pickup
             </button>
             <button className="btn btn-ghost" style={{ fontSize:'0.85rem' }} onClick={() => navigate('/kitchen')}>
               Cocina
@@ -410,7 +633,7 @@ export default function OrdersPage() {
             <span className="icon">🐙</span>
             <h3>Sin mesas activas</h3>
             <p>Presiona "+ Nueva orden" para comenzar</p>
-            <button className="btn btn-primary" style={{ marginTop:'0.75rem' }} onClick={() => setShowPicker(true)}>
+            <button className="btn btn-primary" style={{ marginTop:'0.75rem' }} onClick={openNewOrder}>
               + Nueva orden
             </button>
           </div>
@@ -426,14 +649,44 @@ export default function OrdersPage() {
               />
             ))}
           </div>
+
+          {pickupOrders.length > 0 && (
+            <div style={{ marginTop:'1.5rem' }}>
+              <div style={{
+                fontFamily:'var(--font-display)', fontWeight:600, fontSize:'0.8rem',
+                color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.07em',
+                marginBottom:'0.75rem'
+              }}>
+                🛵 Pedidos para llevar ({pickupOrders.length})
+              </div>
+              <div style={{ display:'grid', gap:'0.75rem', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))' }}>
+                {pickupOrders.map(order => (
+                  <PickupCard key={order.id} order={order} onAction={refetch} />
+                ))}
+              </div>
+            </div>
+          )}
         )}
       </div>
 
-      {/* Selector de mesa */}
-      {showPicker && (
+      {showPickup && (
+        <PickupModal
+          onConfirm={goToPickupMenu}
+          onClose={() => setShowPickup(false)}
+        />
+      )}
+
+      {pickerStep === 'branch' && (
+        <BranchPicker
+          onSelect={b => { setPickerBranch(b); setPickerStep('table') }}
+          onClose={closePicker}
+        />
+      )}
+
+      {pickerStep === 'table' && (
         <TablePicker
-          onSelect={n => { setShowPicker(false); navigate(`/menu?table=${n}`) }}
-          onClose={() => setShowPicker(false)}
+          onSelect={goToMenu}
+          onClose={closePicker}
           activeTables={new Set(tables.map(t => t.tableNum))}
         />
       )}

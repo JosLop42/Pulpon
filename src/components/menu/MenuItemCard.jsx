@@ -1,9 +1,18 @@
+import { useRef } from 'react'
 import { useCart } from '@/context/CartContext'
 
 export default function MenuItemCard({ item }) {
   const { addItem, items, updateQty, removeItem } = useCart()
   const cartItem = items.find(i => i.id === item.id)
   const qty = cartItem?.quantity ?? 0
+  const adding = useRef(false)
+
+  function handleAdd() {
+    if (adding.current) return
+    adding.current = true
+    addItem(item)
+    setTimeout(() => { adding.current = false }, 400)
+  }
 
   return (
     <div className="card card-hover" style={{ display:'flex', gap:'0.875rem', alignItems:'flex-start' }}>
@@ -43,7 +52,7 @@ export default function MenuItemCard({ item }) {
           <button
             className="btn btn-primary"
             style={{ padding:'0.4rem 0.9rem', fontSize:'0.85rem' }}
-            onClick={() => addItem(item)}
+            onClick={handleAdd}
           >
             + Agregar
           </button>

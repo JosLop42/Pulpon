@@ -2,33 +2,33 @@
 
 /* ── DESIGN TOKENS ──────────────────────────────────────── */
 :root {
-  --ink:       #0a1628;
-  --ink-2:     #0d1f3c;
-  --ink-3:     #162844;
-  --surface:   #1a2f4a;
-  --surface-2: #1f3a5a;
-  --border:    rgba(255,255,255,0.08);
-  --border-2:  rgba(255,255,255,0.14);
+  --ink:       #fff5eb;
+  --ink-2:     #f5e6d3;
+  --ink-3:     #ecdcc8;
+  --surface:   #fffcf8;
+  --surface-2: #f8efe3;
+  --border:    rgba(0,0,0,0.08);
+  --border-2:  rgba(0,0,0,0.14);
 
-  --coral:     #ff5d3b;
+  --coral:     #ff5a3c;
   --coral-2:   #ff7a5c;
-  --teal:      #00c9a7;
-  --teal-2:    #00e5bf;
-  --amber:     #ffb347;
-  --mist:      #7eb8d4;
+  --teal:      #e62946;
+  --teal-2:    #ff3e60;
+  --amber:     #c87400;
+  --mist:      #2a6080;
 
-  --text-1:    #f0f4f8;
-  --text-2:    #9bb5cc;
-  --text-3:    #5e7e96;
+  --text-1:    #0b2545;
+  --text-2:    #2d4f72;
+  --text-3:    #5a789b;
 
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
   --radius-xl: 24px;
 
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
-  --shadow-md: 0 4px 20px rgba(0,0,0,0.4);
-  --shadow-lg: 0 8px 40px rgba(0,0,0,0.5);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.12);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.18);
 
   --font-display: 'Syne', sans-serif;
   --font-body:    'DM Sans', sans-serif;
@@ -53,7 +53,7 @@ body {
 
 img, svg { display: block; max-width: 100%; }
 a { color: inherit; text-decoration: none; }
-button { cursor: pointer; font-family: inherit; border: none; background: none; }
+button { cursor: pointer; font-family: inherit; border: none; background: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 input, textarea, select { font-family: inherit; }
 
 /* ── TIPOGRAFÍA ─────────────────────────────────────────── */
@@ -116,11 +116,11 @@ h4 { font-size: 1rem; }
 .btn-ghost:hover { background: var(--surface-2); color: var(--text-1); border-color: var(--border-2); }
 
 .btn-danger {
-  background: rgba(255,80,60,0.15);
-  color: #ff5040;
-  border: 1px solid rgba(255,80,60,0.2);
+  background: rgba(220,30,30,0.1);
+  color: #b81414;
+  border: 1px solid rgba(220,30,30,0.2);
 }
-.btn-danger:hover { background: rgba(255,80,60,0.25); }
+.btn-danger:hover { background: rgba(220,30,30,0.18); }
 
 .btn:disabled {
   opacity: 0.45;
@@ -171,12 +171,12 @@ h4 { font-size: 1rem; }
   font-family: var(--font-display);
   letter-spacing: 0.03em;
 }
-.badge-pending    { background: rgba(255,179,71,0.15); color: var(--amber); }
-.badge-confirmed  { background: rgba(0,201,167,0.12); color: var(--teal); }
-.badge-preparing  { background: rgba(126,184,212,0.15); color: var(--mist); }
-.badge-ready      { background: rgba(100,220,100,0.15); color: #5dda5d; }
-.badge-delivered  { background: rgba(255,255,255,0.07); color: var(--text-3); }
-.badge-cancelled  { background: rgba(255,80,60,0.1); color: #ff5040; }
+.badge-pending    { background: rgba(200,116,0,0.1); color: var(--amber); }
+.badge-confirmed  { background: rgba(230,41,70,0.1); color: var(--teal); }
+.badge-preparing  { background: rgba(42,96,128,0.12); color: var(--mist); }
+.badge-ready      { background: rgba(20,130,20,0.1); color: #1a8a1a; }
+.badge-delivered  { background: rgba(0,0,0,0.05); color: var(--text-3); }
+.badge-cancelled  { background: rgba(220,30,30,0.1); color: #b81414; }
 
 /* ── LAYOUT ─────────────────────────────────────────────── */
 .page {
@@ -216,6 +216,24 @@ h4 { font-size: 1rem; }
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
   border-radius: var(--radius-sm);
+}
+
+/* ── TEMA OSCURO: COCINA ────────────────────────────────── */
+.kitchen-dark {
+  --ink:       #0b2545;
+  --ink-2:     #0e2a4a;
+  --ink-3:     #122f52;
+  --surface:   #173565;
+  --surface-2: #1b3d6e;
+  --border:    rgba(255,255,255,0.08);
+  --border-2:  rgba(255,255,255,0.14);
+  --text-1:    #fff5eb;
+  --text-2:    #c8a98b;
+  --text-3:    #8a6f5a;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.5);
+  color: var(--text-1);
 }
 
 /* ── SCROLLBAR ──────────────────────────────────────────── */
