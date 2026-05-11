@@ -172,7 +172,7 @@ export async function markTablePaid(branch_id, table_number) {
 export async function getReportsData(dateFrom) {
   let query = supabase
     .from('orders')
-    .select('id, branch_id, total, created_at, branches(name), order_items(quantity, unit_price, menu_items(name, menu_categories(name, emoji)))')
+    .select('id, branch_id, table_number, total, created_at, branches(name), order_items(quantity, unit_price, menu_items(name, menu_categories(name, emoji)))')
     .eq('status', 'paid')
   if (dateFrom) query = query.gte('created_at', dateFrom)
   const { data, error } = await query

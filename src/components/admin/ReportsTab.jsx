@@ -8,6 +8,8 @@ const RANGES = [
   { key: 'all',   label: 'Todo' },
 ]
 
+const DAY_NAMES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+
 function getDateFrom(range) {
   const now   = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -21,6 +23,24 @@ function getDateFrom(range) {
   return null
 }
 
+function getDaysInRange(range) {
+  const today = new Date()
+  const result = []
+  if (range === 'week') {
+    const monday = new Date(today)
+    monday.setDate(today.getDate() - ((today.getDay() + 6) % 7))
+    for (let d = new Date(monday); d <= today; d.setDate(d.getDate() + 1)) {
+      result.push(new Date(d).toISOString().slice(0, 10))
+    }
+  } else if (range === 'month') {
+    const start = new Date(today.getFullYear(), today.getMonth(), 1)
+    for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+      result.push(new Date(d).toISOString().slice(0, 10))
+    }
+  }
+  return result
+}
+
 function processData(orders) {
   const totalRevenue = orders.reduce((s, o) => s + (Number(o.total) || 0), 0)
   const totalOrders  = orders.length
@@ -28,6 +48,9 @@ function processData(orders) {
 
   const branchMap = {}
   const dishMap   = {}
+  const dayMap    = {}
+  let pickupCount = 0, pickupRevenue = 0
+  let dineInCount = 0, dineInRevenue = 0
 
   for (const o of orders) {
     const bId   = o.branch_id
@@ -35,6 +58,21 @@ function processData(orders) {
     if (!branchMap[bId]) branchMap[bId] = { id: bId, name: bName, revenue: 0, orders: 0 }
     branchMap[bId].revenue += Number(o.total) || 0
     branchMap[bId].orders  += 1
+
+    if (o.table_number === 0) {
+      pickupCount++
+      pickupRevenue += Number(o.total) || 0
+    } else {
+      dineInCount++
+      dineInRevenue += Number(o.total) || 0
+    }
+
+    const day = o.created_at?.slice(0, 10)
+    if (day) {
+      if (!dayMap[day]) dayMap[day] = { revenue: 0, count: 0 }
+      dayMap[day].revenue += Number(o.total) || 0
+      dayMap[day].count++
+    }
 
     for (const item of (o.order_items || [])) {
       const name  = item.menu_items?.name || '—'
@@ -48,19 +86,24 @@ function processData(orders) {
   const byBranch  = Object.values(branchMap).sort((a, b) => b.revenue - a.revenue)
   const topDishes = Object.values(dishMap).sort((a, b) => b.qty - a.qty).slice(0, 10)
 
-  return { totalRevenue, totalOrders, avgOrder, byBranch, topDishes }
+  return { totalRevenue, totalOrders, avgOrder, byBranch, topDishes, dayMap, pickupCount, pickupRevenue, dineInCount, dineInRevenue }
 }
 
 function exportCSV(orders, rangeLabel) {
-  const { byBranch, topDishes, totalRevenue, totalOrders } = processData(orders)
+  const { byBranch, topDishes, totalRevenue, totalOrders, pickupCount, pickupRevenue, dineInCount, dineInRevenue } = processData(orders)
   const rows = [
     ["Reporte Pulpo's", rangeLabel],
     [`Generado el ${new Date().toLocaleDateString('es-GT')}`],
     [],
     ['INGRESOS POR SUCURSAL'],
-    ['Sucursal', 'Pedidos pagados', 'Ingreso (Q)'],
+    ['Sucursal', 'Pedidos', 'Ingreso (Q)'],
     ...byBranch.map(b => [b.name, b.orders, b.revenue.toFixed(2)]),
     ['TOTAL', totalOrders, totalRevenue.toFixed(2)],
+    [],
+    ['MESA VS PICKUP'],
+    ['Tipo', 'Pedidos', 'Ingreso (Q)'],
+    ['En mesa', dineInCount, dineInRevenue.toFixed(2)],
+    ['Para llevar (pickup)', pickupCount, pickupRevenue.toFixed(2)],
     [],
     ['TOP PLATILLOS MÁS PEDIDOS'],
     ['#', 'Platillo', 'Unidades vendidas', 'Ingreso (Q)'],
@@ -78,7 +121,7 @@ function exportCSV(orders, rangeLabel) {
 }
 
 function exportPDF(orders, rangeLabel) {
-  const { byBranch, topDishes, totalRevenue, totalOrders, avgOrder } = processData(orders)
+  const { byBranch, topDishes, totalRevenue, totalOrders, avgOrder, pickupCount, pickupRevenue, dineInCount, dineInRevenue } = processData(orders)
   const maxRev = byBranch[0]?.revenue || 1
 
   const html = `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/>
@@ -93,6 +136,10 @@ function exportPDF(orders, rangeLabel) {
   .kpi-v{font-size:1.3rem;font-weight:700;color:#0a9e87}
   .kpi-l{font-size:.72rem;color:#888;margin-top:3px}
   h2{font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#555;margin:1.25rem 0 .75rem;padding-bottom:.375rem;border-bottom:1px solid #eee}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:.875rem;margin-bottom:1.5rem}
+  .split-box{border:1px solid #eee;border-radius:8px;padding:.875rem;text-align:center}
+  .split-v{font-size:1.1rem;font-weight:700}
+  .split-l{font-size:.72rem;color:#888;margin-top:3px}
   .bar-row{display:flex;align-items:center;gap:.625rem;margin-bottom:.5rem}
   .bar-lbl{width:130px;font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .bar-track{flex:1;background:#f0f0f0;border-radius:4px;height:10px}
@@ -110,6 +157,11 @@ function exportPDF(orders, rangeLabel) {
     <div class="kpi"><div class="kpi-v">Q${totalRevenue.toFixed(2)}</div><div class="kpi-l">Total ingresos</div></div>
     <div class="kpi"><div class="kpi-v">${totalOrders}</div><div class="kpi-l">Pedidos pagados</div></div>
     <div class="kpi"><div class="kpi-v">Q${avgOrder.toFixed(2)}</div><div class="kpi-l">Promedio por pedido</div></div>
+  </div>
+  <h2>Mesa vs Pickup</h2>
+  <div class="split">
+    <div class="split-box"><div class="split-v" style="color:#0a9e87">Q${dineInRevenue.toFixed(2)}</div><div class="split-l">🪑 ${dineInCount} pedidos en mesa</div></div>
+    <div class="split-box"><div class="split-v" style="color:#c87400">Q${pickupRevenue.toFixed(2)}</div><div class="split-l">🛵 ${pickupCount} pedidos pickup</div></div>
   </div>
   ${byBranch.length > 1 ? `
   <h2>Ingresos por sucursal</h2>
@@ -135,6 +187,58 @@ function exportPDF(orders, rangeLabel) {
   setTimeout(() => win.print(), 400)
 }
 
+function DailyChart({ dayMap, range }) {
+  const days = useMemo(() => getDaysInRange(range), [range])
+  if (!days.length) return null
+
+  const data    = days.map(d => ({ day: d, revenue: dayMap[d]?.revenue || 0, count: dayMap[d]?.count || 0 }))
+  const maxRev  = Math.max(...data.map(d => d.revenue), 1)
+  const todayStr = new Date().toISOString().slice(0, 10)
+
+  return (
+    <div className="card" style={{ marginBottom:'1.25rem', padding:'1rem 1.25rem' }}>
+      <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'0.78rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.875rem' }}>
+        Ventas por día
+      </div>
+      <div style={{ display:'flex', alignItems:'flex-end', gap: range === 'month' ? 2 : 6, height:80 }}>
+        {data.map(d => {
+          const pct     = d.revenue / maxRev
+          const date    = new Date(d.day + 'T12:00:00')
+          const isToday = d.day === todayStr
+          const dayNum  = parseInt(d.day.slice(8, 10), 10)
+          return (
+            <div
+              key={d.day}
+              style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-end', gap:3, height:'100%' }}
+            >
+              <div
+                title={d.revenue > 0 ? `Q${d.revenue.toFixed(2)} · ${d.count} pedido${d.count !== 1 ? 's' : ''}` : 'Sin ventas'}
+                style={{
+                  width:'100%', minHeight:2,
+                  height:`${Math.max(pct * 56, d.revenue > 0 ? 4 : 2)}px`,
+                  background: isToday ? 'var(--coral)' : (d.revenue > 0 ? 'var(--teal)' : 'var(--border)'),
+                  borderRadius:'3px 3px 0 0',
+                  transition:'height 0.4s ease'
+                }}
+              />
+              {range === 'week' && (
+                <div style={{ fontSize:'0.62rem', color: isToday ? 'var(--coral)' : 'var(--text-3)', fontWeight: isToday ? 700 : 400 }}>
+                  {DAY_NAMES[date.getDay()]}
+                </div>
+              )}
+              {range === 'month' && dayNum % 5 === 1 && (
+                <div style={{ fontSize:'0.58rem', color:'var(--text-3)' }}>
+                  {dayNum}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default function ReportsTab({ branches }) {
   const [range,      setRange]      = useState('month')
   const [orders,     setOrders]     = useState([])
@@ -158,10 +262,10 @@ export default function ReportsTab({ branches }) {
     [orders, branchView]
   )
 
-  const { totalRevenue, totalOrders, avgOrder, byBranch, topDishes } = useMemo(
-    () => processData(visibleOrders),
-    [visibleOrders]
-  )
+  const {
+    totalRevenue, totalOrders, avgOrder, byBranch, topDishes,
+    dayMap, pickupCount, pickupRevenue, dineInCount, dineInRevenue
+  } = useMemo(() => processData(visibleOrders), [visibleOrders])
 
   const maxRevenue = byBranch[0]?.revenue || 1
 
@@ -170,8 +274,6 @@ export default function ReportsTab({ branches }) {
 
       {/* Controles superiores */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'0.75rem', marginBottom:'1.25rem' }}>
-
-        {/* Rango de fechas */}
         <div style={{ display:'flex', gap:'0.375rem', flexWrap:'wrap' }}>
           {RANGES.map(r => (
             <button
@@ -190,8 +292,6 @@ export default function ReportsTab({ branches }) {
             </button>
           ))}
         </div>
-
-        {/* Exportar */}
         <div style={{ display:'flex', gap:'0.5rem' }}>
           <button
             className="btn btn-ghost"
@@ -212,7 +312,7 @@ export default function ReportsTab({ branches }) {
         </div>
       </div>
 
-      {/* Selector vista */}
+      {/* Filtro por sucursal */}
       <div style={{ display:'flex', gap:'0.375rem', flexWrap:'wrap', marginBottom:'1.5rem' }}>
         <button
           onClick={() => setBranchView('all')}
@@ -253,11 +353,11 @@ export default function ReportsTab({ branches }) {
       ) : (
         <>
           {/* KPIs */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'0.875rem', marginBottom:'1.5rem' }}>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'0.875rem', marginBottom:'1.25rem' }}>
             {[
-              { label:'Total ingresos',      value:`Q${totalRevenue.toFixed(2)}`, color:'var(--teal)'  },
-              { label:'Pedidos pagados',      value:String(totalOrders),           color:'var(--mist)'  },
-              { label:'Promedio por pedido',  value:`Q${avgOrder.toFixed(2)}`,     color:'var(--amber)' },
+              { label:'Total ingresos',     value:`Q${totalRevenue.toFixed(2)}`, color:'var(--teal)'  },
+              { label:'Pedidos cobrados',   value:String(totalOrders),           color:'var(--mist)'  },
+              { label:'Ticket promedio',    value:`Q${avgOrder.toFixed(2)}`,     color:'var(--amber)' },
             ].map(k => (
               <div key={k.label} className="card" style={{ textAlign:'center', padding:'1rem 0.75rem' }}>
                 <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'1.25rem', color:k.color }}>
@@ -268,8 +368,42 @@ export default function ReportsTab({ branches }) {
             ))}
           </div>
 
-          {/* Barras por sucursal — solo en vista general con más de una sucursal */}
-          {branchView === 'all' && byBranch.length > 0 && (
+          {/* Gráfica diaria */}
+          {(range === 'week' || range === 'month') && (
+            <DailyChart dayMap={dayMap} range={range} />
+          )}
+
+          {/* Mesa vs Pickup */}
+          {totalOrders > 0 && (
+            <div className="card" style={{ marginBottom:'1.25rem', padding:'1rem 1.25rem' }}>
+              <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'0.78rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.875rem' }}>
+                Mesa vs Pickup
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'0.875rem' }}>
+                <div style={{ textAlign:'center', padding:'0.875rem 0.75rem', background:'var(--surface-2)', borderRadius:'var(--radius)' }}>
+                  <div style={{ fontSize:'1.1rem', marginBottom:3 }}>🪑</div>
+                  <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'1.05rem', color:'var(--teal)' }}>
+                    Q{dineInRevenue.toFixed(2)}
+                  </div>
+                  <div style={{ color:'var(--text-3)', fontSize:'0.72rem', marginTop:3 }}>
+                    {dineInCount} pedido{dineInCount !== 1 ? 's' : ''} en mesa
+                  </div>
+                </div>
+                <div style={{ textAlign:'center', padding:'0.875rem 0.75rem', background:'var(--surface-2)', borderRadius:'var(--radius)' }}>
+                  <div style={{ fontSize:'1.1rem', marginBottom:3 }}>🛵</div>
+                  <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'1.05rem', color:'var(--amber)' }}>
+                    Q{pickupRevenue.toFixed(2)}
+                  </div>
+                  <div style={{ color:'var(--text-3)', fontSize:'0.72rem', marginTop:3 }}>
+                    {pickupCount} pedido{pickupCount !== 1 ? 's' : ''} pickup
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Barras por sucursal — solo en vista general */}
+          {branchView === 'all' && byBranch.length > 1 && (
             <div className="card" style={{ marginBottom:'1.25rem', padding:'1rem 1.25rem' }}>
               <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:'0.78rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.875rem' }}>
                 Ingresos por sucursal
