@@ -628,44 +628,48 @@ export default function OrdersPage() {
           <div style={{ display:'flex', flexDirection:'column', gap:'0.75rem' }}>
             {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height:160 }}/>)}
           </div>
-        ) : tables.length === 0 ? (
-          <div className="empty-state" style={{ marginTop:'3rem' }}>
-            <span className="icon">🐙</span>
-            <h3>Sin mesas activas</h3>
-            <p>Presiona "+ Nueva orden" para comenzar</p>
-            <button className="btn btn-primary" style={{ marginTop:'0.75rem' }} onClick={openNewOrder}>
-              + Nueva orden
-            </button>
-          </div>
         ) : (
-          <div style={{ display:'grid', gap:'0.875rem', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-            {tables.map(({ tableNum, orders: tOrders }) => (
-              <TableCard
-                key={tableNum}
-                tableNum={tableNum}
-                orders={tOrders}
-                branchId={branchId}
-                onAction={handleCardAction}
-              />
-            ))}
-          </div>
-
-          {pickupOrders.length > 0 && (
-            <div style={{ marginTop:'1.5rem' }}>
-              <div style={{
-                fontFamily:'var(--font-display)', fontWeight:600, fontSize:'0.8rem',
-                color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.07em',
-                marginBottom:'0.75rem'
-              }}>
-                🛵 Pedidos para llevar ({pickupOrders.length})
+          <>
+            {tables.length === 0 ? (
+              <div className="empty-state" style={{ marginTop:'3rem' }}>
+                <span className="icon">🐙</span>
+                <h3>Sin mesas activas</h3>
+                <p>Presiona "+ Nueva orden" para comenzar</p>
+                <button className="btn btn-primary" style={{ marginTop:'0.75rem' }} onClick={openNewOrder}>
+                  + Nueva orden
+                </button>
               </div>
-              <div style={{ display:'grid', gap:'0.75rem', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))' }}>
-                {pickupOrders.map(order => (
-                  <PickupCard key={order.id} order={order} onAction={refetch} />
+            ) : (
+              <div style={{ display:'grid', gap:'0.875rem', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+                {tables.map(({ tableNum, orders: tOrders }) => (
+                  <TableCard
+                    key={tableNum}
+                    tableNum={tableNum}
+                    orders={tOrders}
+                    branchId={branchId}
+                    onAction={handleCardAction}
+                  />
                 ))}
               </div>
-            </div>
-          )}
+            )}
+
+            {pickupOrders.length > 0 && (
+              <div style={{ marginTop:'1.5rem' }}>
+                <div style={{
+                  fontFamily:'var(--font-display)', fontWeight:600, fontSize:'0.8rem',
+                  color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.07em',
+                  marginBottom:'0.75rem'
+                }}>
+                  🛵 Pedidos para llevar ({pickupOrders.length})
+                </div>
+                <div style={{ display:'grid', gap:'0.75rem', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))' }}>
+                  {pickupOrders.map(order => (
+                    <PickupCard key={order.id} order={order} onAction={refetch} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
