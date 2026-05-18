@@ -6,6 +6,7 @@ import {
   markTableDelivered, markTablePaid, subscribeToOrders, signOut,
   getBranches
 } from '@/lib/supabase'
+import DynaBloomFooter from '@/components/DynaBloomFooter'
 
 // ── Prioridad de estado para la tarjeta de mesa ───────────────────────────────
 const STATUS_PRIORITY = { ready: 4, confirmed: 3, preparing: 2, delivered: 1 }
@@ -694,6 +695,8 @@ export default function OrdersPage() {
           activeTables={new Set(tables.map(t => t.tableNum))}
         />
       )}
+
+      <DynaBloomFooter />
     </div>
   )
 }

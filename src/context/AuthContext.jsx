@@ -3,15 +3,32 @@ import { supabase, getMyProfile } from '@/lib/supabase'
 
 const AuthContext = createContext(null)
 
+const SESSION_TIMEOUT_MS = 8 * 60 * 60 * 1000 // 8 horas
+const SESSION_START_KEY  = 'pulpos-session-start'
+
 export function AuthProvider({ children }) {
   const [user,    setUser]    = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Un solo listener maneja tanto la sesión inicial como los cambios posteriores.
-    // Supabase v2 emite INITIAL_SESSION al suscribirse, lo que cubre el estado de carga inicial.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        localStorage.setItem(SESSION_START_KEY, Date.now().toString())
+      }
+
+      if (event === 'INITIAL_SESSION' && session) {
+        const start = parseInt(localStorage.getItem(SESSION_START_KEY) || '0', 10)
+        if (!start || Date.now() - start > SESSION_TIMEOUT_MS) {
+          supabase.auth.signOut()
+          return
+        }
+      }
+
+      if (event === 'SIGNED_OUT') {
+        localStorage.removeItem(SESSION_START_KEY)
+      }
+
       setUser(session?.user ?? null)
       if (session?.user) {
         getMyProfile()
@@ -24,7 +41,18 @@ export function AuthProvider({ children }) {
       }
     })
 
-    return () => subscription.unsubscribe()
+    // Verifica el timeout cada minuto mientras la app está abierta
+    const interval = setInterval(() => {
+      const start = parseInt(localStorage.getItem(SESSION_START_KEY) || '0', 10)
+      if (start && Date.now() - start > SESSION_TIMEOUT_MS) {
+        supabase.auth.signOut()
+      }
+    }, 60_000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearInterval(interval)
+    }
   }, [])
 
   async function refreshProfile() {

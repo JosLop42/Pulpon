@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useCart } from '@/context/CartContext'
 import MenuItemCard from '@/components/menu/MenuItemCard'
 import CartDrawer from '@/components/menu/CartDrawer'
+import DynaBloomFooter from '@/components/DynaBloomFooter'
 
 export default function MenuPage() {
   const [searchParams] = useSearchParams()
@@ -206,6 +207,8 @@ export default function MenuPage() {
         pickupName={pickupName}
         submitError={submitError}
       />
+
+      <DynaBloomFooter />
     </div>
   )
 }

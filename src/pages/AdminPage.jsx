@@ -6,6 +6,7 @@ import {
   signOut
 } from '@/lib/supabase'
 import ReportsTab from '@/components/admin/ReportsTab'
+import DynaBloomFooter from '@/components/DynaBloomFooter'
 
 // ── Editor de sucursal ────────────────────────────────────────────────────────
 function BranchEditor({ branch, onSaved }) {
@@ -164,7 +165,7 @@ export default function AdminPage() {
   }, {})
 
   return (
-    <div style={{ minHeight:'100dvh', background:'var(--ink)' }}>
+    <div style={{ minHeight:'100dvh', display:'flex', flexDirection:'column', background:'var(--ink)' }}>
 
       <header style={{
         position:'sticky', top:0, zIndex:10,
@@ -386,6 +387,7 @@ export default function AdminPage() {
         )}
 
       </div>
+      <DynaBloomFooter />
     </div>
   )
 }

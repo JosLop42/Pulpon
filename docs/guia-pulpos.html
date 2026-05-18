@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Guía de uso — Sistema Pulpo's</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  body{
+    font-family:'DM Sans',sans-serif;
+    background:#fff;
+    color:#0b2545;
+    font-size:13px;
+    line-height:1.6;
+  }
+
+  /* ── PORTADA ── */
+  .cover{
+    background: linear-gradient(135deg, #0b2545 0%, #1a3f6f 60%, #ff5a3c 100%);
+    min-height:100vh;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center;
+    padding:3rem 2rem;
+    page-break-after: always;
+  }
+  .cover-logo{
+    font-size:5rem;
+    margin-bottom:1rem;
+  }
+  .cover h1{
+    font-family:'Syne',sans-serif;
+    font-size:3rem;
+    font-weight:800;
+    color:#fff5eb;
+    margin-bottom:0.5rem;
+  }
+  .cover .slogan{
+    font-size:1.1rem;
+    color:rgba(255,245,235,0.7);
+    font-style:italic;
+    margin-bottom:2.5rem;
+  }
+  .cover .badge{
+    background:rgba(255,245,235,0.15);
+    border:1px solid rgba(255,245,235,0.3);
+    border-radius:100px;
+    padding:0.5rem 1.5rem;
+    color:#fff5eb;
+    font-size:0.9rem;
+    font-family:'Syne',sans-serif;
+    font-weight:600;
+  }
+
+  /* ── PÁGINAS ── */
+  .page{
+    max-width:780px;
+    margin:0 auto;
+    padding:3rem 3rem 2rem;
+    page-break-after: always;
+  }
+  .page:last-child{ page-break-after: auto; }
+
+  /* ── SECCIÓN ── */
+  .section-header{
+    display:flex;
+    align-items:center;
+    gap:0.875rem;
+    margin-bottom:1.75rem;
+    padding-bottom:0.875rem;
+    border-bottom:2px solid #ff5a3c;
+  }
+  .section-number{
+    width:36px; height:36px;
+    background:#ff5a3c;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Syne',sans-serif;
+    font-weight:800;
+    color:#fff;
+    font-size:1rem;
+    flex-shrink:0;
+  }
+  .section-header h2{
+    font-family:'Syne',sans-serif;
+    font-size:1.4rem;
+    font-weight:700;
+    color:#0b2545;
+  }
+
+  /* ── PASOS ── */
+  .steps{ display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem; }
+  .step{
+    display:flex; gap:1rem; align-items:flex-start;
+  }
+  .step-num{
+    width:26px; height:26px; border-radius:50%;
+    background:#0b2545;
+    color:#fff5eb;
+    font-family:'Syne',sans-serif;
+    font-weight:700;
+    font-size:0.8rem;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+    margin-top:2px;
+  }
+  .step-body{ flex:1; }
+  .step-body strong{ color:#0b2545; font-weight:600; }
+  .step-body p{ color:#3a5a7a; margin-top:0.2rem; font-size:0.88rem; }
+
+  /* ── MOCKUP ── */
+  .mockup{
+    background:#fff5eb;
+    border:1.5px solid #d4c8b8;
+    border-radius:16px;
+    overflow:hidden;
+    margin:1.25rem 0;
+    box-shadow:0 4px 20px rgba(0,0,0,0.1);
+  }
+  .mockup-header{
+    background:#0b2545;
+    padding:0.75rem 1rem;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    color:#fff5eb;
+    font-family:'Syne',sans-serif;
+    font-weight:700;
+    font-size:0.85rem;
+  }
+  .mockup-header .dot{ width:8px; height:8px; border-radius:50%; background:#ff5a3c; }
+  .mockup-body{ padding:1rem; }
+
+  /* ── TABLE GRID ── */
+  .table-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:0.625rem;
+    margin-bottom:0.75rem;
+  }
+  .table-card{
+    border-radius:10px;
+    padding:0.625rem 0.5rem;
+    text-align:center;
+    font-family:'Syne',sans-serif;
+    font-size:0.75rem;
+    font-weight:700;
+    border:1.5px solid;
+  }
+  .table-free{ background:rgba(0,201,167,0.1); border-color:rgba(0,201,167,0.3); color:#0a7a62; }
+  .table-busy{ background:rgba(255,90,60,0.1); border-color:rgba(255,90,60,0.35); color:#cc3a1e; }
+  .table-ready{ background:rgba(20,150,20,0.1); border-color:rgba(20,150,20,0.35); color:#0d6b0d; }
+
+  /* ── MENU ITEM ── */
+  .menu-item{
+    display:flex; gap:0.75rem; align-items:center;
+    padding:0.75rem;
+    background:#fff;
+    border:1px solid #e8ddd0;
+    border-radius:10px;
+    margin-bottom:0.5rem;
+  }
+  .menu-img{
+    width:48px; height:48px;
+    border-radius:8px;
+    background:linear-gradient(135deg,#ff5a3c,#e62946);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.4rem;
+    flex-shrink:0;
+  }
+  .menu-info{ flex:1; }
+  .menu-info .name{ font-weight:600; font-size:0.88rem; color:#0b2545; }
+  .menu-info .price{ color:#ff5a3c; font-family:'Syne',sans-serif; font-weight:700; font-size:0.85rem; }
+  .btn-add{
+    background:#ff5a3c; color:#fff;
+    border-radius:8px; padding:0.35rem 0.75rem;
+    font-family:'Syne',sans-serif; font-weight:700; font-size:0.78rem;
+  }
+
+  /* ── KITCHEN CARDS ── */
+  .kitchen-col-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0.875rem; }
+  .kitchen-col h4{
+    font-family:'Syne',sans-serif;
+    font-size:0.72rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:0.625rem;
+  }
+  .kitchen-col.new h4{ color:#c87400; }
+  .kitchen-col.prep h4{ color:#2a6080; }
+  .kitchen-card{
+    background:#fff;
+    border:1px solid #e8ddd0;
+    border-radius:10px;
+    padding:0.75rem;
+    border-left:3px solid;
+    margin-bottom:0.5rem;
+  }
+  .kitchen-card.urgent{ border-left-color:#ff5a3c; }
+  .kitchen-card.mid{ border-left-color:#c87400; }
+  .kitchen-card.ok{ border-left-color:#1a9a1a; }
+  .kitchen-card .mesa{ font-family:'Syne',sans-serif; font-weight:700; font-size:0.9rem; }
+  .kitchen-card .time{ font-size:0.75rem; color:#c87400; font-weight:600; }
+  .kitchen-card .items{ font-size:0.8rem; color:#3a5a7a; margin-top:0.375rem; }
+
+  /* ── STATUS BADGES ── */
+  .status{
+    display:inline-block; border-radius:100px;
+    padding:0.15rem 0.6rem;
+    font-size:0.72rem; font-weight:700;
+    font-family:'Syne',sans-serif;
+  }
+  .s-confirmed{ background:rgba(255,90,60,0.1); color:#cc3a1e; }
+  .s-preparing{ background:rgba(42,96,128,0.12); color:#2a6080; }
+  .s-ready{ background:rgba(20,150,20,0.1); color:#0d6b0d; }
+
+  /* ── ADMIN REPORTS ── */
+  .kpi-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; margin-bottom:1rem; }
+  .kpi{
+    background:#fff;
+    border:1px solid #e8ddd0;
+    border-radius:10px;
+    padding:0.875rem 0.75rem;
+    text-align:center;
+  }
+  .kpi-val{ font-family:'Syne',sans-serif; font-weight:800; font-size:1.1rem; }
+  .kpi-lbl{ font-size:0.68rem; color:#5a789b; margin-top:3px; }
+
+  /* ── TIPS ── */
+  .tip{
+    background:rgba(230,41,70,0.06);
+    border-left:3px solid #e62946;
+    border-radius:0 8px 8px 0;
+    padding:0.75rem 1rem;
+    margin:1rem 0;
+    font-size:0.85rem;
+    color:#0b2545;
+  }
+  .tip strong{ color:#e62946; }
+
+  .info{
+    background:rgba(42,96,128,0.07);
+    border-left:3px solid #2a6080;
+    border-radius:0 8px 8px 0;
+    padding:0.75rem 1rem;
+    margin:1rem 0;
+    font-size:0.85rem;
+    color:#0b2545;
+  }
+
+  /* ── BAR CHART ── */
+  .bar-row{ display:flex; align-items:center; gap:0.75rem; margin-bottom:0.5rem; }
+  .bar-label{ width:100px; font-size:0.8rem; color:#3a5a7a; }
+  .bar-track{ flex:1; background:#e8ddd0; border-radius:4px; height:10px; }
+  .bar-fill{ background:#e62946; border-radius:4px; height:10px; }
+  .bar-val{ font-family:'Syne',sans-serif; font-weight:700; font-size:0.78rem; color:#0b2545; min-width:70px; text-align:right; }
+
+  /* ── PRINT ── */
+  @media print {
+    .cover{ min-height:100vh; }
+    .page{ page-break-inside:avoid; }
+    body{ font-size:12px; }
+  }
+
+  /* ── DIVIDER ── */
+  .divider{ height:1px; background:#e8ddd0; margin:1.25rem 0; }
+
+  /* ── ROL BADGES ── */
+  .roles{ display:flex; gap:0.75rem; flex-wrap:wrap; margin:1rem 0; }
+  .rol{
+    border-radius:10px;
+    padding:0.875rem 1rem;
+    flex:1; min-width:160px;
+    border:1.5px solid;
+  }
+  .rol-admin{ background:rgba(255,90,60,0.07); border-color:rgba(255,90,60,0.25); }
+  .rol-emp{ background:rgba(42,96,128,0.07); border-color:rgba(42,96,128,0.25); }
+  .rol-kit{ background:rgba(200,116,0,0.07); border-color:rgba(200,116,0,0.25); }
+  .rol h4{ font-family:'Syne',sans-serif; font-weight:700; font-size:0.85rem; margin-bottom:0.375rem; }
+  .rol ul{ padding-left:1rem; font-size:0.82rem; color:#3a5a7a; }
+
+  /* footer */
+  .footer{ text-align:center; color:#9ab0c8; font-size:0.72rem; margin-top:2rem; padding-top:1rem; border-top:1px solid #e8ddd0; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════ PORTADA ═══════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-logo">🐙</div>
+  <h1>Pulpo's</h1>
+  <div class="slogan">Sabor que te pone de cabeza</div>
+  <div class="badge">📱 Guía de uso del sistema de pedidos</div>
+</div>
+
+<!-- ═══════════════════════════════════ PÁGINA 1: INTRO ══════════════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-number">✦</div>
+    <h2>¿Qué es este sistema?</h2>
+  </div>
+
+  <p style="color:#3a5a7a; font-size:0.95rem; margin-bottom:1.25rem; line-height:1.8;">
+    El sistema de pedidos de Pulpo's es una aplicación web que permite gestionar
+    todos los pedidos de sus sucursales en tiempo real, desde cualquier
+    teléfono o tablet, sin necesidad de instalar nada.
+  </p>
+
+  <div class="roles">
+    <div class="rol rol-admin">
+      <h4>🐙 Administrador</h4>
+      <ul>
+        <li>Ver reportes de ventas</li>
+        <li>Gestionar el menú</li>
+        <li>Controlar sucursales</li>
+        <li>Acceso a todo</li>
+      </ul>
+    </div>
+    <div class="rol rol-emp">
+      <h4>🧑‍💼 Empleado</h4>
+      <ul>
+        <li>Tomar pedidos por mesa</li>
+        <li>Pedidos para llevar</li>
+        <li>Ver estado de mesas</li>
+        <li>Cobrar pedidos</li>
+      </ul>
+    </div>
+    <div class="rol rol-kit">
+      <h4>👨‍🍳 Cocina</h4>
+      <ul>
+        <li>Ver pedidos en tiempo real</li>
+        <li>Marcar pedidos en proceso</li>
+        <li>Marcar pedidos listos</li>
+        <li>Ver tiempo por pedido</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info">
+    El sistema funciona los <strong>365 días del año, 24/7</strong> desde cualquier
+    dispositivo con internet. No requiere computadora encendida ni ninguna instalación previa.
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-header" style="margin-top:1.5rem;">
+    <div class="section-number">1</div>
+    <h2>Inicio de sesión</h2>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <span>🐙 Pulpo's — Login</span>
+      <div class="dot"></div>
+    </div>
+    <div class="mockup-body" style="text-align:center; padding:1.5rem;">
+      <div style="font-size:2.5rem; margin-bottom:0.5rem;">🐙</div>
+      <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:1.2rem; color:#0b2545;">Pulpo's</div>
+      <div style="font-size:0.75rem; color:#5a789b; font-style:italic; margin-bottom:1rem;">Sabor que te pone de cabeza</div>
+      <div style="background:#fff; border:1px solid #e8ddd0; border-radius:8px; padding:0.5rem 0.75rem; margin-bottom:0.5rem; text-align:left; color:#9ab0c8; font-size:0.82rem;">✉️ correo@ejemplo.com</div>
+      <div style="background:#fff; border:1px solid #e8ddd0; border-radius:8px; padding:0.5rem 0.75rem; margin-bottom:0.875rem; text-align:left; color:#9ab0c8; font-size:0.82rem;">🔒 ••••••••</div>
+      <div style="background:#ff5a3c; border-radius:8px; padding:0.6rem; color:#fff; font-family:'Syne',sans-serif; font-weight:700; font-size:0.85rem;">Entrar →</div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Abre el navegador</strong> en tu teléfono o tablet y entra a la dirección del sistema.
+        <p>Recomendamos guardarla como acceso directo en la pantalla de inicio.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Ingresa tu correo y contraseña</strong> asignados por el administrador.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>El sistema detecta tu sucursal automáticamente</strong> según el usuario con que iniciaste sesión.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Pulpo's · Sistema de gestión de pedidos</div>
+</div>
+
+<!-- ═══════════════════════════════════ PÁGINA 2: DASHBOARD ══════════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-number">2</div>
+    <h2>Dashboard de pedidos</h2>
+  </div>
+
+  <p style="color:#3a5a7a; margin-bottom:1.25rem;">
+    Al iniciar sesión verás el estado de todas las mesas de tu sucursal en tiempo real.
+  </p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <span>🐙 Pulpo's · Arrazola</span>
+      <span style="font-size:0.75rem; opacity:0.7;">+ Nueva orden &nbsp; 🛵 Pickup</span>
+    </div>
+    <div class="mockup-body">
+      <div class="table-grid">
+        <div class="table-card table-free">Mesa 1<br/><span style="font-weight:400;font-size:0.68rem;">Libre</span></div>
+        <div class="table-card table-busy">Mesa 2<br/><span class="status s-preparing">Preparando</span></div>
+        <div class="table-card table-ready">Mesa 3<br/><span class="status s-ready">✓ Listo</span></div>
+        <div class="table-card table-busy">Mesa 4<br/><span class="status s-confirmed">Confirmado</span></div>
+        <div class="table-card table-free">Mesa 5<br/><span style="font-weight:400;font-size:0.68rem;">Libre</span></div>
+        <div class="table-card table-free">Mesa 6<br/><span style="font-weight:400;font-size:0.68rem;">Libre</span></div>
+        <div class="table-card table-busy">Mesa 7<br/><span class="status s-preparing">Preparando</span></div>
+        <div class="table-card table-free">Mesa 8<br/><span style="font-weight:400;font-size:0.68rem;">Libre</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">●</div>
+      <div class="step-body">
+        <strong style="color:#1a9a1a;">Verde</strong> — Mesa libre, sin pedidos activos.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">●</div>
+      <div class="step-body">
+        <strong style="color:#c87400;">Naranja / Confirmado</strong> — Pedido recibido, esperando que cocina lo tome.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">●</div>
+      <div class="step-body">
+        <strong style="color:#2a6080;">Azul / Preparando</strong> — Cocina está trabajando en el pedido.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">●</div>
+      <div class="step-body">
+        <strong style="color:#0d6b0d;">Verde oscuro / Listo</strong> — El pedido está listo para llevar a la mesa.
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <strong>Tiempo real:</strong> No necesitas recargar la página. Cuando cocina actualiza un pedido, tu pantalla se actualiza automáticamente al instante.
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-header" style="margin-top:1.5rem;">
+    <div class="section-number">3</div>
+    <h2>Crear un pedido de mesa</h2>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Presiona "+ Nueva orden"</strong> en la esquina superior derecha del dashboard.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Selecciona el número de mesa</strong> del cliente.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>Agrega los platillos</strong> desde el menú. Usa las categorías para navegar rápido.
+        <p>Toca "+ Agregar" en cada platillo. Puedes ajustar la cantidad con los botones + y −.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>Presiona "Ver pedido"</strong> para revisar el resumen antes de enviar.
+        <p>Puedes agregar una nota general para cocina si el cliente tiene alguna indicación especial.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <strong>Presiona "Enviar a cocina"</strong>. El pedido llega inmediatamente a la pantalla de cocina.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Pulpo's · Sistema de gestión de pedidos</div>
+</div>
+
+<!-- ═══════════════════════════════════ PÁGINA 3: MENÚ + PICKUP ═══════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-number">3</div>
+    <h2>El menú</h2>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <span>🐙 Arrazola · Mesa 3</span>
+      <span style="font-size:0.75rem; background:#ff5a3c; border-radius:6px; padding:0.2rem 0.6rem;">🛒 Ver pedido · Q155.00</span>
+    </div>
+    <div class="mockup-body">
+      <div style="display:flex; gap:0.5rem; margin-bottom:0.875rem; overflow:hidden;">
+        <span style="background:#ff5a3c; color:#fff; border-radius:100px; padding:0.25rem 0.75rem; font-size:0.75rem; font-family:'Syne',sans-serif; font-weight:700;">🦑 Ceviches</span>
+        <span style="background:#fff; border:1px solid #e8ddd0; border-radius:100px; padding:0.25rem 0.75rem; font-size:0.75rem; color:#5a789b;">🍤 Tostadas</span>
+        <span style="background:#fff; border:1px solid #e8ddd0; border-radius:100px; padding:0.25rem 0.75rem; font-size:0.75rem; color:#5a789b;">🥤 Bebidas</span>
+      </div>
+      <div class="menu-item">
+        <div class="menu-img">🦑</div>
+        <div class="menu-info">
+          <div class="name">Ceviche Mixto 16 oz</div>
+          <div style="font-size:0.75rem; color:#5a789b;">Camarón, pulpo y cangrejo</div>
+          <div class="price">Q75.00</div>
+        </div>
+        <div class="btn-add">+ Agregar</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-img">🐙</div>
+        <div class="menu-info">
+          <div class="name">Ceviche Mixto 36 oz</div>
+          <div style="font-size:0.75rem; color:#5a789b;">Camarón, pulpo y cangrejo</div>
+          <div class="price">Q155.00</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.5rem; background:#f8efe3; border:1px solid #e8ddd0; border-radius:8px; padding:0.2rem 0.5rem;">
+          <span style="font-size:0.85rem; font-weight:700; color:#0b2545;">−</span>
+          <span style="font-family:'Syne',sans-serif; font-weight:700; font-size:0.85rem;">1</span>
+          <span style="font-size:0.85rem; font-weight:700; color:#0b2545;">+</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <strong>Consejo:</strong> Si el cliente quiere agregar más platillos después, presiona la tarjeta de la mesa en el dashboard y selecciona "Agregar ítem" para volver al menú de esa misma mesa.
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-header" style="margin-top:1.5rem;">
+    <div class="section-number">4</div>
+    <h2>Pedidos para llevar (Pickup)</h2>
+  </div>
+
+  <p style="color:#3a5a7a; margin-bottom:1rem;">
+    Para pedidos de clientes que llevan su orden a casa o esperan en el local sin mesa asignada.
+  </p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Presiona "🛵 Pickup"</strong> en el encabezado del dashboard.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Ingresa el nombre y teléfono</strong> del cliente.
+        <p>Esto aparecerá en la pantalla de cocina para identificar el pedido.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>Selecciona los platillos</strong> igual que un pedido de mesa y envía a cocina.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <strong>El pedido aparece en la sección "Para llevar"</strong> del dashboard, separado de las mesas.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Pulpo's · Sistema de gestión de pedidos</div>
+</div>
+
+<!-- ═══════════════════════════════════ PÁGINA 4: COCINA ══════════════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-number">5</div>
+    <h2>Pantalla de cocina</h2>
+  </div>
+
+  <p style="color:#3a5a7a; margin-bottom:1.25rem;">
+    La pantalla de cocina está diseñada para el personal que prepara los pedidos.
+    Se recomienda tenerla abierta en una tablet fija en cocina.
+  </p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <span>🍳 Cocina — Arrazola</span>
+      <span style="font-size:0.75rem; opacity:0.8;">Nuevos: 2 &nbsp; En progreso: 1</span>
+    </div>
+    <div class="mockup-body">
+      <div class="kitchen-col-grid">
+        <div class="kitchen-col new">
+          <h4>⏳ Por preparar (2)</h4>
+          <div class="kitchen-card urgent">
+            <div style="display:flex; justify-content:space-between;">
+              <span class="mesa">Mesa 4</span>
+              <span class="time">15 min</span>
+            </div>
+            <div class="items">2× Ceviche Mixto 16 oz<br/>1× Coca Cola Lata</div>
+            <div style="background:#ff5a3c; border-radius:6px; padding:0.3rem; text-align:center; color:#fff; font-size:0.75rem; font-family:'Syne',sans-serif; font-weight:700; margin-top:0.5rem;">🔥 Preparando</div>
+          </div>
+          <div class="kitchen-card mid">
+            <div style="display:flex; justify-content:space-between;">
+              <span class="mesa">🛵 Ana García</span>
+              <span class="time">5 min</span>
+            </div>
+            <div class="items">1× Ceviche de Pulpo 36 oz<br/>📞 5555-1234</div>
+            <div style="background:#ff5a3c; border-radius:6px; padding:0.3rem; text-align:center; color:#fff; font-size:0.75rem; font-family:'Syne',sans-serif; font-weight:700; margin-top:0.5rem;">🔥 Preparando</div>
+          </div>
+        </div>
+        <div class="kitchen-col prep">
+          <h4>🔥 Preparando (1)</h4>
+          <div class="kitchen-card ok">
+            <div style="display:flex; justify-content:space-between;">
+              <span class="mesa">Mesa 7</span>
+              <span class="time" style="color:#1a9a1a;">8 min</span>
+            </div>
+            <div class="items">3× Tostada Mixta<br/>2× Mineral Preparada</div>
+            <div style="background:#1a9a1a; border-radius:6px; padding:0.3rem; text-align:center; color:#fff; font-size:0.75rem; font-family:'Syne',sans-serif; font-weight:700; margin-top:0.5rem;">✓ Listo para entregar</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Columna izquierda — "Por preparar":</strong> pedidos nuevos que aún no se han tomado.
+        <p>Presiona <strong>"🔥 Preparando"</strong> cuando comiencen a preparar ese pedido.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Columna derecha — "Preparando":</strong> pedidos en proceso.
+        <p>Presiona <strong>"✓ Listo para entregar"</strong> cuando el pedido esté terminado.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>El color del borde indica urgencia:</strong>
+        <p>🟢 Verde = menos de 10 min &nbsp;|&nbsp; 🟡 Amarillo = 10-20 min &nbsp;|&nbsp; 🔴 Rojo = más de 20 min</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="info">
+    Los pedidos para llevar (Pickup) se identifican con 🛵 y muestran el nombre y teléfono del cliente para no confundirlos con pedidos de mesa.
+  </div>
+
+  <div class="footer">Pulpo's · Sistema de gestión de pedidos</div>
+</div>
+
+<!-- ═══════════════════════════════════ PÁGINA 5: COBRO + ADMIN ══════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-number">6</div>
+    <h2>Cobrar un pedido</h2>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <strong>Presiona la tarjeta de la mesa</strong> en el dashboard para ver el detalle.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <strong>Verifica que todos los pedidos estén en estado "Entregado"</strong> antes de cobrar.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <strong>Presiona "💳 Cobrar"</strong>. El sistema registra el pago y la mesa queda libre automáticamente.
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <strong>Importante:</strong> Una vez marcado como cobrado, el pedido pasa a los reportes del administrador y no puede modificarse.
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section-header" style="margin-top:1.5rem;">
+    <div class="section-number">7</div>
+    <h2>Panel de administración</h2>
+  </div>
+
+  <p style="color:#3a5a7a; margin-bottom:1rem;">
+    Exclusivo para el administrador. Muestra reportes de ventas, gestión del menú y configuración de sucursales.
+  </p>
+
+  <div class="mockup">
+    <div class="mockup-header">
+      <span>🐙 Admin — Pulpo's</span>
+      <span style="font-size:0.72rem; opacity:0.7;">📊 Reportes &nbsp; 🍽️ Menú &nbsp; 📍 Sucursales</span>
+    </div>
+    <div class="mockup-body">
+      <div style="display:flex; gap:0.5rem; margin-bottom:0.875rem;">
+        <span style="background:#e62946; color:#fff; border-radius:100px; padding:0.2rem 0.7rem; font-size:0.72rem; font-family:'Syne',sans-serif; font-weight:700;">Hoy</span>
+        <span style="border:1px solid #e8ddd0; border-radius:100px; padding:0.2rem 0.7rem; font-size:0.72rem; color:#5a789b;">Esta semana</span>
+        <span style="border:1px solid #e8ddd0; border-radius:100px; padding:0.2rem 0.7rem; font-size:0.72rem; color:#5a789b;">Este mes</span>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-val" style="color:#e62946;">Q3,450</div><div class="kpi-lbl">Total ingresos</div></div>
+        <div class="kpi"><div class="kpi-val" style="color:#2a6080;">24</div><div class="kpi-lbl">Pedidos cobrados</div></div>
+        <div class="kpi"><div class="kpi-val" style="color:#c87400;">Q143</div><div class="kpi-lbl">Ticket promedio</div></div>
+      </div>
+      <div style="margin-top:0.75rem;">
+        <div class="bar-row">
+          <div class="bar-label">Arrazola</div>
+          <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+          <div class="bar-val">Q1,450</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Km 19.5</div>
+          <div class="bar-track"><div class="bar-fill" style="width:75%"></div></div>
+          <div class="bar-val">Q1,090</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Lo de Diéguez</div>
+          <div class="bar-track"><div class="bar-fill" style="width:55%"></div></div>
+          <div class="bar-val">Q800</div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Metroplaza</div>
+          <div class="bar-track"><div class="bar-fill" style="width:8%"></div></div>
+          <div class="bar-val">Q110</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">●</div>
+      <div class="step-body">
+        <strong>Reportes:</strong> ventas por día, por sucursal, platillos más vendidos. Exportable a Excel y PDF.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">●</div>
+      <div class="step-body">
+        <strong>Menú:</strong> activar o desactivar platillos de forma global o por sucursal.
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">●</div>
+      <div class="step-body">
+        <strong>Sucursales:</strong> editar nombre y dirección de cada sucursal.
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Pulpo's · Sistema de gestión de pedidos</div>
+</div>
+
+<!-- ═══════════════════════════════════ PÁGINA 6: CONSEJOS ═══════════════════════ -->
+<div class="page">
+  <div class="section-header">
+    <div class="section-number">★</div>
+    <h2>Consejos y buenas prácticas</h2>
+  </div>
+
+  <div class="steps" style="gap:1.25rem;">
+    <div class="step">
+      <div class="step-num">💡</div>
+      <div class="step-body">
+        <strong>Instala la app en tu teléfono</strong>
+        <p>En el navegador, busca la opción "Agregar a pantalla de inicio". Así se comporta como una app nativa, sin necesidad de abrir el navegador cada vez.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">📶</div>
+      <div class="step-body">
+        <strong>Sin conexión</strong>
+        <p>Si pierdes internet, el sistema mostrará un aviso. Cuando se recupere la conexión, se sincroniza automáticamente. No hagas pedidos mientras el aviso esté visible.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">🔄</div>
+      <div class="step-body">
+        <strong>No recargues la página innecesariamente</strong>
+        <p>El sistema se actualiza solo en tiempo real. Recargar puede hacer que pierdas el estado actual de las mesas por un momento.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">🔐</div>
+      <div class="step-body">
+        <strong>No compartas tu usuario</strong>
+        <p>Cada empleado debe tener su propio acceso. Así los reportes reflejan correctamente qué pedidos tomó cada sucursal.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">🍽️</div>
+      <div class="step-body">
+        <strong>Platillo agotado</strong>
+        <p>Si un platillo se acaba, el administrador puede desactivarlo desde el panel. Desaparecerá del menú en todos los dispositivos al instante.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">📊</div>
+      <div class="step-body">
+        <strong>Exporta tus reportes cada semana</strong>
+        <p>Desde el panel de administración puedes descargar un reporte en Excel o PDF. Se recomienda hacerlo semanalmente para llevar control del negocio.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider" style="margin-top:2rem;"></div>
+
+  <div style="text-align:center; padding:1.5rem 0;">
+    <div style="font-size:2rem; margin-bottom:0.5rem;">🐙</div>
+    <div style="font-family:'Syne',sans-serif; font-weight:800; font-size:1.1rem; color:#0b2545;">Pulpo's</div>
+    <div style="font-size:0.8rem; color:#9ab0c8; font-style:italic; margin-bottom:1rem;">Sabor que te pone de cabeza</div>
+    <div style="font-size:0.8rem; color:#5a789b;">
+      Para soporte técnico, contacta a tu proveedor del sistema.<br/>
+      El sistema está disponible todos los días, las 24 horas.
+    </div>
+  </div>
+
+  <div class="footer">Pulpo's · Sistema de gestión de pedidos · Versión 1.0</div>
+</div>
+
+</body>
+</html>

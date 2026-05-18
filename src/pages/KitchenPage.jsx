@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { getOrdersByBranch, getOrderById, updateOrderStatus, subscribeToOrders } from '@/lib/supabase'
+import DynaBloomFooter from '@/components/DynaBloomFooter'
 
 const KITCHEN_STATUSES = ['confirmed', 'preparing']
 
@@ -100,7 +101,7 @@ export default function KitchenPage() {
   )
 
   return (
-    <div style={{ minHeight:'100dvh', background:'var(--ink)', paddingBottom:'2rem' }}>
+    <div style={{ minHeight:'100dvh', display:'flex', flexDirection:'column', background:'var(--ink)' }}>
 
       {!online && (
         <div style={{ background:'#7c2d2d', color:'#fecaca', padding:'0.6rem 1rem', textAlign:'center', fontSize:'0.85rem', fontWeight:500 }}>
@@ -191,6 +192,7 @@ export default function KitchenPage() {
           </div>
         </div>
       </div>
+      <DynaBloomFooter />
     </div>
   )
 }
